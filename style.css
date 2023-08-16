@@ -1,0 +1,98 @@
+button{
+	height: 30px;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+.flex-center, .vertical-align, #hangulTable, #start-div, #quiz{
+	display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#quiz{
+	flex-direction: column;
+}
+
+#random-letter{
+	font-size: 4em;
+}
+
+#answer{
+	width: 350px;
+    height: 40px;
+    text-align: center;
+    font-size: 1.2em;
+    border-radius: 5px;
+    margin-bottom: 40px;
+}
+
+.vertical-align{
+	height: 100%;
+}
+
+.hidden{
+	display: none!important;
+}
+
+#hangulTable{
+	flex-wrap: wrap;
+	margin-left: 10px;
+}
+
+#hangulTable>.letter{
+	width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid black;
+    margin-right: 10px;
+	margin-bottom: 10px;
+    font-size: 1.5em;
+    border-radius: 5px;
+	cursor: default;
+}
+
+#hangulTable>.letter.selected{
+	background-color: greenyellow;
+}
+
+#options{
+	text-align: center;
+	margin-bottom: 10px;
+}
+
+.container{
+	width: 300px;
+}
+
+/* Bootstrap-like breakpoints */
+/* Small devices (landscape phones, 576px and up) */
+@media (min-width: 576px) {
+	.container{
+		width: 580px;
+	}
+}
+
+/* Medium devices (tablets, 768px and up) */
+@media (min-width: 768px) {
+	
+}
+
+/* Large devices (desktops, 992px and up) */
+@media (min-width: 992px) {
+	
+ }
+
+/* X-Large devices (large desktops, 1200px and up) */
+@media (min-width: 1200px) {
+	.container{
+		width: 1100px;
+	}
+}
+
+/* XX-Large devices (larger desktops, 1400px and up) */
+@media (min-width: 1400px) {
+	
+}

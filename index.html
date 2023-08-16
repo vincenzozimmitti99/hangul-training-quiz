@@ -1,0 +1,225 @@
+<html>
+	<head>
+		<title>Hangul Training Quiz</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link rel="stylesheet" href="style.css">
+	</head>
+	<body>
+		<div class="vertical-align">
+			<div class="container">
+				<div id="quiz" class="hidden">
+					<div id="random-letter"></div>
+					<input id="answer" type="text" placeholder="Your answer (press Enter when done)"/>
+					<button onClick="goBack()">Finish</button>
+				</div>
+
+				<div id="hangulTable"></div>
+
+				<div id="options">
+					<button onClick="selectAll()">Select all</button>
+					<button onClick="deselectAll()">Deselect all</button>
+				</div>
+
+				<div id="start-div" style="flex-flow: column;">
+					<div style="margin-bottom: 5px;">
+						<input id="infinite" type="checkbox"/>
+						<label for="infinite">Enable infinite quiz</label>
+					</div>
+					<button onClick="startQuiz()">Start</button>
+				</div>
+			</div>
+		</div>
+
+		<script>
+			var correctAnswers = wrongAnswers = 0;
+			var selectedLetters = [];
+			let remainingLetters = [];
+			let hangulLetters = [
+				{letter: "ㄱ", answers: ["g", "k"]}, // Start of consonants
+				{letter: "ㄲ", answers: ["kk"]},
+				{letter: "ㄴ", answers: ["n"]},
+				{letter: "ㄷ", answers: ["d", "t"]},
+				{letter: "ㄸ", answers: ["tt"]},
+				{letter: "ㄹ", answers: ["r", "l"]},
+				{letter: "ㅁ", answers: ["m"]},
+				{letter: "ㅂ", answers: ["b", "p"]},
+				{letter: "ㅃ", answers: ["pp"]},
+				{letter: "ㅅ", answers: ["s"]},
+				{letter: "ㅆ", answers: ["ss"]},
+				{letter: "ㅇ", answers: ["ng"]},
+				{letter: "ㅈ", answers: ["ch", "j"]},
+				{letter: "ㅉ", answers: ["tch"]},
+				{letter: "ㅊ", answers: ["ch'"]},
+				{letter: "ㅋ", answers: ["k'"]},
+				{letter: "ㅌ", answers: ["t'"]},
+				{letter: "ㅍ", answers: ["p'"]},
+				{letter: "ㅎ", answers: ["h"]},
+				{letter: "ㅏ", answers: ["a"]}, // Start of vocals
+				{letter: "ㅐ", answers: ["ae"]},
+				{letter: "ㅑ", answers: ["ya"]},
+				{letter: "ㅒ", answers: ["yae"]},
+				{letter: "ㅓ", answers: ["o", "eo"]},
+				{letter: "ㅔ", answers: ["e"]},
+				{letter: "ㅕ", answers: ["yo"]},
+				{letter: "ㅖ", answers: ["ye"]},
+				{letter: "ㅗ", answers: ["o"]},
+				{letter: "ㅘ", answers: ["wa"]},
+				{letter: "ㅙ", answers: ["wae"]},
+				{letter: "ㅚ", answers: ["oe"]},
+				{letter: "ㅛ", answers: ["yo"]},
+				{letter: "ㅜ", answers: ["u"]},
+				{letter: "ㅝ", answers: ["wo"]},
+				{letter: "ㅞ", answers: ["we"]},
+				{letter: "ㅟ", answers: ["wi"]},
+				{letter: "ㅠ", answers: ["yu"]},
+				{letter: "ㅡ", answers: ["u", "eu"]},
+				{letter: "ㅢ", answers: ["ui"]},
+				{letter: "ㅣ", answers: ["i"]},
+			]; // Maybe divide in two arrays, one for consontants and one for vocals
+			let quiz = document.getElementById("quiz");
+			let randomLetter = document.getElementById("random-letter");
+			let hangulTable = document.getElementById("hangulTable");
+			let options = document.getElementById("options");
+			let startDiv = document.getElementById("start-div");
+			let infinite = document.getElementById("infinite");
+			for(let letter of hangulLetters){
+				hangulTable.innerHTML += "<div class=\"letter\" onClick=\"handleLetter(event)\">" + letter.letter + "</div>";
+			}
+
+			const loadLC = () => {
+				if(!localStorage.getItem("savedSelecteds")){
+					localStorage.setItem("savedSelecteds", JSON.stringify([]));
+					return;
+				}
+				let savedSelecteds = JSON.parse(localStorage.getItem("savedSelecteds"));
+				for(let selected of savedSelecteds){
+					for(let letter of hangulTable.children){
+						if(letter.innerHTML===selected){
+							letter.classList.add("selected");
+						}
+					}
+				}
+			};
+			loadLC();
+
+			document.getElementById("answer").onkeydown = (event) => {
+				let answerText = event.target.value.toLowerCase();
+				if(event.keyCode===13 && answerText!=""){
+					let correct = false;
+					let correctAnswer = "";
+					for(let letter of hangulLetters){
+						if(letter.letter===randomLetter.innerHTML){
+							for(let i=0;i<letter.answers.length;i++){
+								if(i>0){
+									correctAnswer += "/" + letter.answers[i];
+								} else {
+									correctAnswer = letter.answers[0];
+								}
+							}
+							for(let answer of letter.answers){
+								if(answer===answerText){
+									correct = true;
+								}
+							}
+						}
+					}
+					if(correct){
+						correctAnswers++;
+					} else {
+						alert("Wrong answer, it was " + correctAnswer);
+						wrongAnswers++;
+					}
+
+					event.target.placeholder = "Your answer";
+					event.target.value = "";
+					if(infinite.checked){
+						randomLetter.innerHTML = selectedLetters[Math.floor(Math.random() * selectedLetters.length)].innerHTML;
+					} else {
+						if(remainingLetters.length>0){
+							let randomIndex = Math.floor(Math.random() * remainingLetters.length);
+							randomLetter.innerHTML = remainingLetters[randomIndex].innerHTML;
+							remainingLetters.splice(randomIndex, 1);
+						} else {
+							goBack();
+						}
+					}
+					
+				}
+			}
+
+			const handleLetter = (event) => {
+				if(event.target.classList.contains("selected")){
+					removeFromLC(event.target.innerHTML);
+				} else {
+					saveToLC(event.target.innerHTML);
+				}
+				event.target.classList.toggle("selected");
+			}
+
+			const startQuiz = () => {
+				selectedLetters = document.getElementsByClassName("selected");
+				remainingLetters = [...selectedLetters]; // This is used if infinite quiz is disabled
+				if(selectedLetters.length<2){
+					alert("Select at least two characters (but I suggest to study more and come back with a minimum of 5)");
+					return;
+				}
+				hangulTable.classList.add("hidden");
+				options.classList.add("hidden");
+				startDiv.classList.add("hidden");
+				quiz.classList.remove("hidden");
+				let randomIndex = Math.floor(Math.random() * remainingLetters.length);
+				randomLetter.innerHTML = selectedLetters[randomIndex].innerHTML;
+				if(!infinite.checked){
+					remainingLetters.splice(randomIndex, 1);
+				}
+				
+				document.getElementById("answer").focus();
+			}
+
+			const goBack = () => {
+				hangulTable.classList.remove("hidden");
+				options.classList.remove("hidden");
+				startDiv.classList.remove("hidden");
+				quiz.classList.add("hidden");
+				let totalAnswers = (correctAnswers + wrongAnswers);
+				if(totalAnswers>0){
+					let accuracy = (correctAnswers/totalAnswers*100).toFixed(0);
+					alert("You have answered to " + (isNaN(accuracy) || accuracy==Infinity?0:accuracy) + "% of the questions right");
+					correctAnswers = wrongAnswers = 0;
+				}
+			}
+
+			const saveToLC = (letter) => {
+				let savedSelecteds = JSON.parse(localStorage.getItem("savedSelecteds"));
+				savedSelecteds.push(letter);
+				localStorage.setItem("savedSelecteds", JSON.stringify(savedSelecteds));
+			};
+
+			const removeFromLC = (letter) => {
+				let savedSelecteds = JSON.parse(localStorage.getItem("savedSelecteds"));
+				savedSelecteds = savedSelecteds.filter((value) => {
+					return value!==letter;
+				});
+				localStorage.setItem("savedSelecteds", JSON.stringify(savedSelecteds));
+			};
+
+			const selectAll = () => {
+				let savedSelecteds = JSON.parse(localStorage.getItem("savedSelecteds"));
+				for(let letter of hangulTable.children){
+					if(savedSelecteds.indexOf(letter.innerHTML)===-1){
+						saveToLC(letter.innerHTML);
+					}
+					letter.classList.add("selected");
+				}
+			};
+
+			const deselectAll = () => {
+				let savedSelecteds = JSON.parse(localStorage.getItem("savedSelecteds"));
+				localStorage.setItem("savedSelecteds", JSON.stringify([]));
+				for(let letter of hangulTable.children){
+					letter.classList.remove("selected");
+				}
+			};
+		</script>
+	</body>
+</html>
